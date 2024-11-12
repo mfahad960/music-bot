@@ -1,7 +1,7 @@
 const { Client, GatewayIntentBits } = require('discord.js');
 const { Player, QueryType, Queue } = require("discord-player");
 const { YoutubeiExtractor } = require('discord-player-youtubei');
-const { token, bot_channel_id, ziyan_uid, my_main_uid, my_alt_uid } = require("./config.json");
+const { token, bot_channel_id } = require("./config.json");
 
 const PREFIX = '!';         // Command prefix for the bot
 
@@ -53,24 +53,8 @@ client.on('messageCreate', async (message) => {
 
     if (message.author.bot) return;
 
-    if (message.author.id === ziyan_uid) {
-        message.reply('hello ziyan kutti, chut mrwani?')
-    }
-
-    // if (message.author.id === my_main_uid || message.author.id === my_alt_uid) {
-    //     message.reply('welcome supreme leader, how may I be of service?')
-    // }
-
     const args = message.content.slice(PREFIX.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();
-
-    if (command === 'gg') {
-        message.reply('ez');
-    }
-
-    if (command === 'ziyan') {
-        message.reply('kanjar');
-    }
 
     if (command === 'play') {
         const query = args.join(' ');
