@@ -1,0 +1,1 @@
+Basic discord music bot made using node (in development)
