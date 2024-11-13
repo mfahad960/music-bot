@@ -52,7 +52,7 @@ module.exports = {
               metadata: {
                   channel: interaction.channel
               },
-              volume: 75,
+              volume: 60,
               leaveOnEmpty: true,
               leaveOnEmptyCooldown: 30000,
               leaveOnEnd: true,
@@ -60,7 +60,7 @@ module.exports = {
           }
       });
       console.log(track);
-      await interaction.editReply(`Now playing: **${track.title}**`);
+      await interaction.editReply(`Now playing: **${track.cleanTitle}** - ${track.duration}`);
     } catch (error) {
         console.log(`Play error: ${error}`);
         await interaction.editReply('An error occurred while trying to play the song.');
