@@ -19,10 +19,10 @@ module.exports = {
     ),
   
   async execute({client, interaction}) {
-    // const player = useMainPlayer();
+    await interaction.deferReply();
     const query = interaction.options.getString('searchterms');
 
-    if (!interaction.member.voice.channel) return interaction.reply("You need to be in a Voice Channel to play a song.");
+    if (!interaction.member.voice.channel) return interaction.editReply("You need to be in a Voice Channel to play a song.");
 
     // Create or retrieve a queue for the guild
     // const queue = await player.nodes.create(interaction.guild, {
@@ -42,7 +42,7 @@ module.exports = {
 
     // If song not found
     if (!result || !result.tracks || !result.tracks.length) {
-      return interaction.reply('No results found!');
+      return interaction.editReply(`No results found!`);
     }
 
     // play the song
@@ -52,7 +52,7 @@ module.exports = {
               metadata: {
                   channel: interaction.channel
               },
-              volume: 100,
+              volume: 75,
               leaveOnEmpty: true,
               leaveOnEmptyCooldown: 30000,
               leaveOnEnd: true,
@@ -60,9 +60,10 @@ module.exports = {
           }
       });
       console.log(track);
-      await interaction.reply(`Now playing: **${track.title}**`);
+      await interaction.editReply(`Now playing: **${track.title}**`);
     } catch (error) {
         console.log(`Play error: ${error}`);
+        await interaction.editReply('An error occurred while trying to play the song.');
     }
   }
 };
