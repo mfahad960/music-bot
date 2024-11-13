@@ -1,13 +1,15 @@
-require('dotenv').config()
+require('dotenv').config();
+
 const { Client, Collection, GatewayIntentBits, REST, Routes } = require('discord.js');
 const { Player } = require("discord-player");
 const { YoutubeiExtractor } = require('discord-player-youtubei');
 const fs = require('fs');
 
 // Create a new Discord client
-const client = new Client({
+global.client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMembers,
       GatewayIntentBits.GuildVoiceStates,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent
@@ -25,16 +27,16 @@ for(const file of commandFiles){
     commands.push(command.data.toJSON());
 }
 
-// Add the player on the client
+// Add the player to the client
 const player = new Player(client, {
     ytdlOptions: {
-        quality: "highestaudio",
+        quality: 'highestaudio',
         highWaterMark: 1 << 25
     }
 });
-client.player = player;
 // Register the new Youtubei extractor
 player.extractors.register(YoutubeiExtractor, {});
+client.player = player;
 
 client.once('ready', async () => {
     const guild_ids = client.guilds.cache.map(guild => guild.id);

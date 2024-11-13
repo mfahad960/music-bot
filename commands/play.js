@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { QueryType } = require("discord-player");
+const { QueryType, useMainPlayer } = require("discord-player");
 
 // module.exports = {
 // 	data: new SlashCommandBuilder()
@@ -19,47 +19,50 @@ module.exports = {
     ),
   
   async execute({client, interaction}) {
+    // const player = useMainPlayer();
     const query = interaction.options.getString('searchterms');
 
     if (!interaction.member.voice.channel) return interaction.reply("You need to be in a Voice Channel to play a song.");
 
-    console.log(client.player);
-
     // Create or retrieve a queue for the guild
-    const queue = await client.player.nodes.create(interaction.guild, {
-        metadata: {
-            channel: interaction.channel
-        }
-    });
+    // const queue = await player.nodes.create(interaction.guild, {
+    //     metadata: {
+    //         channel: interaction.channel
+    //     }
+    // });
 
     // Wait until you are connected to the channel
-		if (!queue.connection) await queue.connect(interaction.member.voice.channel)
+		// if (!queue.connection) await queue.connect(interaction.member.voice.channel)
 
     // Search for the song using the discord-player
     const result = await client.player.search(query, {
-        requestedBy: interaction.user,
-        searchEngine: QueryType.YOUTUBE_VIDEO
+        requestedBy: interaction.member,
+        searchEngine: QueryType.AUTO
     })
 
+    // If song not found
     if (!result || !result.tracks || !result.tracks.length) {
       return interaction.reply('No results found!');
     }
 
-    const track = result.tracks[0];
-    console.log("Track Info: ");
-    console.log(track.title);
-    console.log(track.author);
-    console.log(track.url);
-    console.log(track.duration);
-    console.log(track.description);
-
-    if (!track) {
-        return message.reply('Error: Invalid track data. Could not read track identifier.');
+    // play the song
+    try {
+      const { track } = await client.player.play(interaction.member.voice.channel, query, {
+          nodeOptions: {
+              metadata: {
+                  channel: interaction.channel
+              },
+              volume: 100,
+              leaveOnEmpty: true,
+              leaveOnEmptyCooldown: 30000,
+              leaveOnEnd: true,
+              leaveOnEndCooldown: 30000,
+          }
+      });
+      console.log(track);
+      await interaction.reply(`Now playing: **${track.title}**`);
+    } catch (error) {
+        console.log(`Play error: ${error}`);
     }
-
-    queue.addTrack(track);
-
-    if (!queue.playing) await queue.play();
-    message.reply(`Now playing: **${track.title}**`);
   }
 };
