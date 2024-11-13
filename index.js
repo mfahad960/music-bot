@@ -1,7 +1,7 @@
+require('dotenv').config()
 const { Client, Collection, GatewayIntentBits, REST, Routes } = require('discord.js');
 const { Player } = require("discord-player");
 const { YoutubeiExtractor } = require('discord-player-youtubei');
-const { token, bot_channel_id, clientId } = require("./config.json");
 const fs = require('fs');
 
 // Create a new Discord client
@@ -38,10 +38,10 @@ player.extractors.register(YoutubeiExtractor, {});
 
 client.once('ready', async () => {
     const guild_ids = client.guilds.cache.map(guild => guild.id);
-    const rest = new REST({ version: '10' }).setToken(token);
+    const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
     for (const guildId of guild_ids) {
-        rest.put(Routes.applicationGuildCommands(clientId, guildId), 
+        rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
             {body: commands})
         .then(() => console.log('Successfully updated commands for guild ' + guildId))
         .catch(console.error);
@@ -52,7 +52,7 @@ client.once('ready', async () => {
 
     try {
         // Fetch the channel
-        const channel = client.channels.cache.get(bot_channel_id) || await client.channels.fetch(bot_channel_id);
+        const channel = client.channels.cache.get(process.env.BOT_CHANNEL_ID) || await client.channels.fetch(process.env.BOT_CHANNEL_ID);
 
         // Send the message to the channel
         if (channel) {
@@ -62,7 +62,6 @@ client.once('ready', async () => {
         } else {
             console.log('Channel not found.');
         }
-
     } catch (error) {
         console.error('Error fetching channel:', error);
     }
@@ -85,4 +84,4 @@ client.on("interactionCreate", async interaction => {
     }
 });
 
-client.login(token);
+client.login(process.env.TOKEN);
