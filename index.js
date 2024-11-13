@@ -5,6 +5,10 @@ const { Player } = require("discord-player");
 const { YoutubeiExtractor } = require('discord-player-youtubei');
 const fs = require('fs');
 
+const TOKEN = process.env.TOKEN
+const CLIENT_ID = "1265238110023712789"
+const BOT_CHANNEL_ID = "1087794554574475284"
+
 // Create a new Discord client
 global.client = new Client({
     intents: [
@@ -40,10 +44,10 @@ client.player = player;
 
 client.once('ready', async () => {
     const guild_ids = client.guilds.cache.map(guild => guild.id);
-    const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+    const rest = new REST({ version: '10' }).setToken(TOKEN);
 
     for (const guildId of guild_ids) {
-        rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
+        rest.put(Routes.applicationGuildCommands(CLIENT_ID, guildId),
             {body: commands})
         .then(() => console.log('Successfully updated commands for guild ' + guildId))
         .catch(console.error);
@@ -54,7 +58,7 @@ client.once('ready', async () => {
 
     try {
         // Fetch the channel
-        const channel = client.channels.cache.get(process.env.BOT_CHANNEL_ID) || await client.channels.fetch(process.env.BOT_CHANNEL_ID);
+        const channel = client.channels.cache.get(BOT_CHANNEL_ID) || await client.channels.fetch(BOT_CHANNEL_ID);
 
         // Send the message to the channel
         if (channel) {
@@ -86,4 +90,4 @@ client.on("interactionCreate", async interaction => {
     }
 });
 
-client.login(process.env.TOKEN);
+client.login(TOKEN);
