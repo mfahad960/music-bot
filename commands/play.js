@@ -1,14 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { QueryType } = require("discord-player");
-
-// module.exports = {
-// 	data: new SlashCommandBuilder()
-// 		.setName('ping')
-// 		.setDescription('Replies with Pong!'),
-// 	async execute({client, interaction}) {
-// 		await interaction.reply('Pong!');
-// 	},
-// };
+const { QueryType, useQueue } = require("discord-player");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -22,19 +13,24 @@ module.exports = {
     await interaction.deferReply();
     const query = interaction.options.getString('input');
 
+    let queue = client.player.nodes.get(interaction.guild);
+
+    let embed = new EmbedBuilder();
+
+    if (!queue) {
+      queue = client.player.nodes.create(interaction.guild, {
+          metadata: {
+              channel: interaction.channel
+          },
+          volume: 75, // Default volume level
+          leaveOnEmpty: true,
+          leaveOnEmptyCooldown: 30000,
+          leaveOnEnd: true,
+          leaveOnEndCooldown: 30000,
+      });
+    }
+
     if (!interaction.member.voice.channel) return interaction.editReply("You need to be in a voice channel to play a song... ❌");
-
-    let embed = new EmbedBuilder()
-
-    // Create or retrieve a queue for the guild
-    // const queue = await player.nodes.create(interaction.guild, {
-    //     metadata: {
-    //         channel: interaction.channel
-    //     }
-    // });
-
-    // Wait until you are connected to the channel
-		// if (!queue.connection) await queue.connect(interaction.member.voice.channel)
 
     // Search for the song using the discord-player
     const result = await client.player.search(query, {
@@ -47,6 +43,15 @@ module.exports = {
       return interaction.editReply(`No results found! ❌`);
     }
 
+    const track = result.tracks[0];
+
+    // Check if the track already exists in the queue
+    const trackExists = queue.tracks.data.some(trackFound => trackFound.url === track.url);
+
+    if (trackExists) {
+      return interaction.editReply(`The track **${track.title}** is already in the queue. ❌`);
+    }
+
     try {
       // play the song
       const { track } = await client.player.play(interaction.member.voice.channel, query, {
@@ -56,34 +61,47 @@ module.exports = {
               },
               volume: 100,
               leaveOnEmpty: true,
-              leaveOnEmptyCooldown: 30000,
+              leaveOnEmptyCooldown: 30000, // in milliseconds
               leaveOnEnd: true,
-              leaveOnEndCooldown: 30000,
+              leaveOnEndCooldown: 30000,  // in milliseconds
           }
       });
 
-      // get active queue
-      const queue  = client.player.nodes.get(interaction.guild.id)
-      console.log(queue.tracks.data);
+      let username = interaction.member.user.globalName;
+      let nickname = interaction.member.nickname;
+
+      if (!nickname) {
+        nickname = "no nickname"
+      }
       
-      if (queue.tracks.data.length > 0) {
+      if (!queue.tracks.data.length == 1) {
+        // Display the currently playing track if it's the first in the queue
+        // await interaction.editReply(`Now playing: **${track.cleanTitle}** - ${track.duration} 🎶`);
+        queue.addTrack(track);
+        embed
+          .setDescription(`**[${track.title}](${track.url})** is now playing 🎶`)
+          .setThumbnail(track.thumbnail)
+          .setFooter({ text: `Duration: ${track.duration}\n` + 
+                             `Requested by: ${username} (${nickname})`})
+      } else {
         // Track is added to the queue if something is currently playing
         // await interaction.editReply(`Added to queue: **${track.cleanTitle}** - ${track.duration} ✅`);
         embed
-          .setDescription(`**[${track.title}](${track.url})** has been added to the queue`)
+          .setDescription(`**[${track.title}](${track.url})** has been added to the queue ✅`)
           .setThumbnail(track.thumbnail)
-          .setFooter({ text: `Duration: ${track.duration}`})
-      } else {
-          // Display the currently playing track if it's the first in the queue
-          // await interaction.editReply(`Now playing: **${track.cleanTitle}** - ${track.duration} 🎶`);
-          embed
-          .setDescription(`**[${track.title}](${track.url})** is now playing`)
-          .setThumbnail(track.thumbnail)
-          .setFooter({ text: `Duration: ${track.duration}`})
+          .setFooter({ text: `Duration: ${track.duration}\n` + 
+                              `Requested by: ${username} (${nickname})`})
       }
+      //console.log(interaction.member.nickname);
+      //console.log('queue length: ', queue?.tracks.data.length);
+      //console.log('queue tracks: ', queue?.tracks);
+      //console.log('queue history: ', queue?.history.tracks);
+
     } catch (error) {
         console.log(`Play error: ${error}`);
-        await interaction.editReply(`I can\'t join the voice channel... ❌`);
+        await interaction.editReply();
+        embed
+          .setDescription(`I can\'t join the voice channel... ❌`)
     }
 
     await interaction.editReply({
