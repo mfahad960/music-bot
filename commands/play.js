@@ -8,7 +8,7 @@ module.exports = {
     .addStringOption(option =>
       option.setName("input").setDescription('Enter a search term or a link').setRequired(true)
     ),
-  
+
   async execute({client, interaction}) {
     await interaction.deferReply();
     const query = interaction.options.getString('input');
@@ -30,7 +30,7 @@ module.exports = {
       });
     }
 
-    if (!interaction.member.voice.channel) return interaction.editReply("You need to be in a voice channel to play a song... ❌");
+    if (!interaction.member.voice.channel) return interaction.editReply(`You need to be in a voice channel to play a song... ❌`);
 
     // Search for the song using the discord-player
     const result = await client.player.search(query, {
@@ -49,7 +49,7 @@ module.exports = {
     const trackExists = queue.tracks.data.some(trackFound => trackFound.url === track.url);
 
     if (trackExists) {
-      return interaction.editReply(`The track **${track.title}** is already in the queue. ❌`);
+      return interaction.editReply(`The track **${track.title}** is already in the queue ❌`);
     }
 
     try {
@@ -82,7 +82,7 @@ module.exports = {
           .setDescription(`**[${track.title}](${track.url})** is now playing 🎶`)
           .setThumbnail(track.thumbnail)
           .setFooter({ text: `Duration: ${track.duration}\n` + 
-                             `Requested by: ${username} (${nickname})`})
+                              `Requested by: ${username} (${nickname})`})
       } else {
         // Track is added to the queue if something is currently playing
         // await interaction.editReply(`Added to queue: **${track.cleanTitle}** - ${track.duration} ✅`);
@@ -101,7 +101,7 @@ module.exports = {
         console.log(`Play error: ${error}`);
         await interaction.editReply();
         embed
-          .setDescription(`I can\'t join the voice channel... ❌`)
+          .setDescription(`I can\'t join the voice channel ❌`)
     }
 
     await interaction.editReply({

@@ -79,12 +79,9 @@ client.on("interactionCreate", async interaction => {
     const command = client.commands.get(interaction.commandName);
     if(!command) return;
 
-    try
-    {
+    try {
         await command.execute({client, interaction});
-    }
-    catch(error)
-    {
+    } catch(error) {
         console.error(error);
         await interaction.reply({content: "There was an error executing this command"});
     }
