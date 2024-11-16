@@ -7,6 +7,7 @@ const fs = require('fs');
 
 const TOKEN = process.env.TOKEN
 const CLIENT_ID = "1265238110023712789"
+const GUILD_ID = "775765883397341244"
 const BOT_CHANNEL_ID = "1087794554574475284"
 
 // Create a new Discord client
@@ -43,15 +44,13 @@ player.extractors.register(YoutubeiExtractor, {});
 client.player = player;
 
 client.once('ready', async () => {
-    const guild_ids = client.guilds.cache.map(guild => guild.id);
     const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-    for (const guildId of guild_ids) {
-        rest.put(Routes.applicationGuildCommands(CLIENT_ID, guildId),
-            {body: commands})
-        .then(() => console.log('Successfully updated commands for guild ' + guildId))
-        .catch(console.error);
-    }
+    console.log("Deploying slash commands");
+    rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+        {body: commands})
+    .then(() => console.log('Successfully updated commands for guild ' + GUILD_ID))
+    .catch(console.error);
 
     console.log(`${client.user.tag} is online!`);
     const messageContent = 'Hello ! MusicBot is online!';

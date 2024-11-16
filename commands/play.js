@@ -6,7 +6,9 @@ module.exports = {
     .setName('play')
     .setDescription('Plays a song from YouTube')
     .addStringOption(option =>
-      option.setName("input").setDescription('Enter a search term or a link').setRequired(true)
+      option.setName("input")
+        .setDescription('Enter a search term or a link')
+        .setRequired(true)
     ),
 
   async execute({client, interaction}) {
@@ -22,7 +24,7 @@ module.exports = {
           metadata: {
               channel: interaction.channel
           },
-          volume: 75, // Default volume level
+          volume: 75,       // Default volume level
           leaveOnEmpty: true,
           leaveOnEmptyCooldown: 30000,
           leaveOnEnd: true,
@@ -59,7 +61,7 @@ module.exports = {
               metadata: {
                   channel: interaction.channel
               },
-              volume: 100,
+              volume: 100,                  // default volume
               leaveOnEmpty: true,
               leaveOnEmptyCooldown: 30000, // in milliseconds
               leaveOnEnd: true,
@@ -77,7 +79,6 @@ module.exports = {
       if (!queue.tracks.data.length == 1) {
         // Display the currently playing track if it's the first in the queue
         // await interaction.editReply(`Now playing: **${track.cleanTitle}** - ${track.duration} 🎶`);
-        queue.addTrack(track);
         embed
           .setDescription(`**[${track.title}](${track.url})** is now playing 🎶`)
           .setThumbnail(track.thumbnail)
@@ -92,18 +93,14 @@ module.exports = {
           .setFooter({ text: `Duration: ${track.duration}\n` + 
                               `Requested by: ${username} (${nickname})`})
       }
-      //console.log(interaction.member.nickname);
-      //console.log('queue length: ', queue?.tracks.data.length);
-      //console.log('queue tracks: ', queue?.tracks);
+
+      console.log('queue length: ', queue?.tracks.data.length);
+      console.log('queue tracks: ', queue?.tracks);
       //console.log('queue history: ', queue?.history.tracks);
-
     } catch (error) {
-        console.log(`Play error: ${error}`);
-        await interaction.editReply();
-        embed
-          .setDescription(`I can\'t join the voice channel ❌`)
+        console.log(`Error during playback: ${error}`);
+        await interaction.editReply('An error occurred during playback. Please try again.');
     }
-
     await interaction.editReply({
       embeds: [embed]
     })
