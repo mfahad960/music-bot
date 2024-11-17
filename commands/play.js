@@ -108,9 +108,7 @@
 // };
 
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { QueryType, QueueRepeatMode } = require("discord-player");
-
-let song_queue = [];
+const { QueryType, QueueRepeatMode, useQueue } = require("discord-player");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -143,6 +141,8 @@ module.exports = {
     }
 
     queue.setRepeatMode(QueueRepeatMode.QUEUE);
+    const tracks = queue.tracks.toArray(); //Converts the queue into a array of tracks
+    const currentTrack = queue.currentTrack; //Gets the current track being played
 
     if (!interaction.member.voice.channel) return interaction.editReply(`You need to be in a voice channel to play a song... ❌`);
 
@@ -164,22 +164,17 @@ module.exports = {
     if (!result || !result.tracks || !result.tracks.length) {
       return interaction.editReply(`No results found! ❌`);
     }
-
     const track = result.tracks[0];
 
-    // Check if the track already exists in the queue
-    const trackExists = song_queue.some(trackFound => trackFound.url === track.url);
-    if (trackExists) return interaction.editReply(`The track **${track.title}** is already in the queue ❌`);
-    console.log(trackExists)
+    if (tracks.some(trackFound => trackFound.url === track.url) || currentTrack?.url === track.url)
+      return interaction.editReply(`The track **${track.title}** is already in the queue ❌`);
 
     let username = interaction.member.user.globalName;
     let nickname = interaction.member.nickname;
 
-    if (!nickname) {
-      nickname = "no nickname"
-    }
+    if (!nickname) nickname = "no nickname";
 
-    if (song_queue.length === 0) {
+    if (tracks.length === 0 && currentTrack === null) {
       // Display the currently playing track if it's the first in the queue
       // await interaction.editReply(`Now playing: **${track.cleanTitle}** - ${track.duration} 🎶`);
       embed
@@ -198,13 +193,8 @@ module.exports = {
     }
 
     queue.addTrack(track);
-    song_queue.push(track);
     if (!queue.isPlaying()) await queue.node.play();
 
-    // console.log('queue length: ', song_queue.length);
-    // console.log('queue: ', song_queue);
-    console.log(queue);
-    
     await interaction.editReply({
       embeds: [embed]
     })
