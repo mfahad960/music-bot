@@ -11,7 +11,7 @@ module.exports = {
 
         if (!queue) return interaction.editReply(`No song in current queue! ❌`);
 
-        if (queue.node.isPlaying()) return interaction.editReply(`Song is already running! ❌`);
+        if (queue.node.isPlaying()) return interaction.editReply(`Song is already playing! ❌`);
 
         const success = queue.node.resume();
         if (success) return interaction.editReply(`Song resumed ✅`);

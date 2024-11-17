@@ -108,7 +108,7 @@
 // };
 
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { QueryType } = require("discord-player");
+const { QueryType, QueueRepeatMode } = require("discord-player");
 
 let song_queue = [];
 
@@ -142,6 +142,8 @@ module.exports = {
       });
     }
 
+    queue.setRepeatMode(QueueRepeatMode.QUEUE);
+
     if (!interaction.member.voice.channel) return interaction.editReply(`You need to be in a voice channel to play a song... ❌`);
 
     try {
@@ -149,7 +151,7 @@ module.exports = {
       if (!queue.connection) await queue.connect(interaction.member.voice.channel);
     } catch (error) {
       console.log(error);
-      return interaction.editReply('Could not join the voice channel!');
+      return interaction.editReply('Could not join the voice channel! ❌');
     }
 
     // Search for the song using the discord-player
@@ -167,10 +169,8 @@ module.exports = {
 
     // Check if the track already exists in the queue
     const trackExists = song_queue.some(trackFound => trackFound.url === track.url);
-
-    if (trackExists) {
-      return interaction.editReply(`The track **${track.title}** is already in the queue ❌`);
-    }
+    if (trackExists) return interaction.editReply(`The track **${track.title}** is already in the queue ❌`);
+    console.log(trackExists)
 
     let username = interaction.member.user.globalName;
     let nickname = interaction.member.nickname;
@@ -201,9 +201,10 @@ module.exports = {
     song_queue.push(track);
     if (!queue.isPlaying()) await queue.node.play();
 
-    //console.log('queue length: ', q?.length);
-    console.log('queue: ', queue);
-
+    // console.log('queue length: ', song_queue.length);
+    // console.log('queue: ', song_queue);
+    console.log(queue);
+    
     await interaction.editReply({
       embeds: [embed]
     })
