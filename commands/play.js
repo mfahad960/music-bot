@@ -107,7 +107,7 @@
 //   }
 // };
 
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { QueryType, QueueRepeatMode, useQueue } = require("discord-player");
 
 module.exports = {
@@ -132,7 +132,7 @@ module.exports = {
         metadata: {
             channel: interaction.channel
         },
-        volume: 100,                  // Default volume
+        volume: 150,                  // Default volume
         leaveOnEmpty: true,
         leaveOnEmptyCooldown: 30000,  // 30 seconds
         leaveOnEnd: true,
@@ -195,8 +195,17 @@ module.exports = {
     queue.addTrack(track);
     if (!queue.isPlaying()) await queue.node.play();
 
-    await interaction.editReply({
-      embeds: [embed]
-    })
+    const confirm = new ButtonBuilder()
+			.setCustomId('pause-button')
+			.setLabel('pause')
+			.setStyle(ButtonStyle.Secondary);
+
+    const row = new ActionRowBuilder()
+	    .addComponents(confirm);
+      
+    await interaction.editReply({ 
+      embeds: [embed],
+      components: [row] 
+    });
   }
 };

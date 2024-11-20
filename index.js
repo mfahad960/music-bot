@@ -73,7 +73,7 @@ client.once('ready', async () => {
 });
 
 client.on("interactionCreate", async interaction => {
-    if(!interaction.isCommand()) return;
+    // if(!interaction.isCommand()) return;
 
     const command = client.commands.get(interaction.commandName);
     if(!command) return;
@@ -83,6 +83,24 @@ client.on("interactionCreate", async interaction => {
     } catch(error) {
         console.error(error);
         await interaction.reply({content: "There was an error executing this command"});
+    }
+
+    if (interaction.isButton()) {
+        try {
+            if (interaction.customId === 'pause-button') {
+                console.log(interaction);
+                console.log('pause button pressed')
+                const pauseCommand = client.commands.get('pause');
+                if (pauseCommand) {
+                    await pauseCommand.execute({ client, interaction });
+                } else {
+                    await interaction.reply({ content: "Pause command not found. ❌", ephemeral: true });
+                }
+            }
+        } catch (error) {
+            console.error('Error handling button interaction:', error);
+            await interaction.reply({ content: "There was an error handling this button interaction", ephemeral: true });
+        }
     }
 });
 
