@@ -196,8 +196,7 @@ module.exports = {
     if (!queue.isPlaying()) await queue.node.play();
       
     await interaction.editReply({ 
-      embeds: [embed],
-      components: [row]
+      embeds: [embed]
     });
   }
 };

@@ -1,8 +1,9 @@
 require('dotenv').config();
 
 const { Client, Collection, GatewayIntentBits, REST, Routes } = require('discord.js');
-const { Player } = require("discord-player");
+const { Player, FFmpeg } = require("discord-player");
 const { YoutubeiExtractor } = require('discord-player-youtubei');
+const ffmpegPath = require('ffmpeg-static');
 const fs = require('fs');
 
 const TOKEN = process.env.TOKEN
@@ -35,6 +36,7 @@ for(const file of commandFiles){
 // Add the player to the client
 const player = new Player(client, {
     ytdlOptions: {
+        FFmpeg: ffmpegPath,
         quality: 'highestaudio',
         highWaterMark: 1 << 25
     }
