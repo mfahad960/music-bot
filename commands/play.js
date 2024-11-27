@@ -121,6 +121,10 @@ module.exports = {
     ),
 
   async execute({client, interaction}) {
+
+    const originalLog = console.log;
+    console.log = () => {}; // Disable logs
+
     await interaction.deferReply();
 
     const query = interaction.options.getString('input');
@@ -194,6 +198,8 @@ module.exports = {
 
     queue.addTrack(track);
     if (!queue.isPlaying()) await queue.node.play();
+
+    console.log = originalLog; // Restore logging
       
     await interaction.editReply({ 
       embeds: [embed]
