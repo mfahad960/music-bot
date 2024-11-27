@@ -9,9 +9,15 @@ module.exports = {
         await interaction.deferReply();
         let queue = client.player.nodes.get(interaction.guild);
 
-        if (!interaction.member.voice.channel || !queue.connection) return interaction.editReply(`Not connected to any voice channel! ❌`);
-        const success = queue.disconnect(interaction.member.voice.channel);
+        if (!interaction.member.voice.channel) return interaction.editReply(`You need to be in a voice channel to use commands ❌`);
 
-        if (success) return interaction.editReply(`Left the voice channel. ✅`);
+        if (!queue || !queue.connection) return interaction.editReply(`Not connected to any voice channel! ❌`);
+        try{
+            await queue.delete();
+            return interaction.editReply(`Left the voice channel. See you next time. ✅`);
+        } catch (error) {
+            console.log(error);
+            return interaction.editReply(`An error occured when leaving the voice channel. ❌`)
+        }
     }
 }
