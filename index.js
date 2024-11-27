@@ -11,6 +11,11 @@ const CLIENT_ID = "1265238110023712789"
 const GUILD_ID = "775765883397341244"
 const BOT_CHANNEL_ID = "1087794554574475284"
 
+const originalLog = console.log;
+console.log = () => {}; // Disable logs
+
+//console.log = originalLog; // Restore logging
+
 // Create a new Discord client
 global.client = new Client({
     intents: [
