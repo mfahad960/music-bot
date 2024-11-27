@@ -9,7 +9,7 @@ module.exports = {
         await interaction.deferReply();
         let queue = client.player.nodes.get(interaction.guild);
 
-        if (!queue.connection) return interaction.editReply(`Not connected to any voice channel! ❌`);
+        if (!interaction.member.voice.channel || !queue.connection) return interaction.editReply(`Not connected to any voice channel! ❌`);
         const success = queue.disconnect(interaction.member.voice.channel);
 
         if (success) return interaction.editReply(`Left the voice channel. ✅`);
