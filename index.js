@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const { Client, Collection, GatewayIntentBits, REST, Routes } = require('discord.js');
-const { Player, FFmpeg } = require("discord-player");
+const { Player } = require("discord-player");
 const { YoutubeiExtractor } = require('discord-player-youtubei');
 const ffmpegPath = require('ffmpeg-static');
 const fs = require('fs');
