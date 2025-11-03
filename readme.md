@@ -11,7 +11,6 @@ Built with `discord.js` and a modular command structure.
 - [Features](#features)  
 - [Requirements](#requirements)  
 - [Installation](#installation)  
-- [Usage](#usage)  
 - [Commands](#commands)  
 - [Roadmap](#roadmap)  
 ---
@@ -50,11 +49,21 @@ This is a simple Discord music bot. It can join voice channels, play audio (via 
 git clone https://github.com/mfahad960/music-bot.git
 cd music-bot
 npm install
-
----
-
-## Usage
+```
 
 ---
 
 ## Commands
+
+- /play --> Search songs on YouTube via url or normal search and add it to queue
+- /volume --> Get current volume or set volume to the specified value
+- /pause --> Pause the currently playing track
+- /resume --> Resume a paused track
+
+---
+
+## Roadmap
+
+- I was working on adding buttons for ease of use and additional commands like removing tracks from queue or modifying the looping method (rn it loops full queue by default).
+- I also wanted to add spotify search but the module I used to extract results from YouTube keeps breaking.
+- I've been trying alternatives but none have worked as of October 2025.
