@@ -21,6 +21,7 @@
     "ffmpeg-static": "^5.2.0",
     "mediaplex": "^1.0.0",
     "play-dl": "^1.9.7",
+    "sodium-native": "^5.0.10",
     "yt-stream": "^1.7.4"
   }
 }

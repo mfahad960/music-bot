@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { QueryType, QueueRepeatMode } = require("discord-player");
+const { QueryType } = require("discord-player");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -12,82 +12,114 @@ module.exports = {
     ),
 
   async execute({client, interaction}) {
-    await interaction.deferReply();
-
-    const query = interaction.options.getString('input');
-    let queue = client.player.nodes.get(interaction.guild);
-    let embed = new EmbedBuilder();
-
-    if (!queue) {
-      queue = client.player.nodes.create(interaction.guild, {
-        metadata: {
-            channel: interaction.channel
-        },
-        volume: 150,                  // Default volume
-        leaveOnEmpty: true,
-        leaveOnEmptyCooldown: 30000,  // 30 seconds
-        leaveOnEnd: true,
-        leaveOnEndCooldown: 30000     // 30 seconds
-      });
-    }
-
-    queue.setRepeatMode(QueueRepeatMode.QUEUE);
-    const tracks = queue.tracks.toArray(); //Converts the queue into a array of tracks
-    const currentTrack = queue.currentTrack; //Gets the current track being played
-
-    if (!interaction.member.voice.channel) return interaction.editReply(`You need to be in a voice channel to play a song... ❌`);
-
     try {
-      // Join the voice channel
-      if (!queue.connection) await queue.connect(interaction.member.voice.channel);
-    } catch (error) {
-      console.log(error);
-      return interaction.editReply('Could not join the voice channel! ❌');
-    }
+      await interaction.deferReply();
 
-    // Search for the song using the discord-player
-    const result = await client.player.search(query, {
-        requestedBy: interaction.member,
-        searchEngine: QueryType.AUTO
-    })
-
-    // If song not found
-    if (!result || !result.tracks || !result.tracks.length) {
-      return interaction.editReply(`No results found! ❌`);
-    }
-    const track = result.tracks[0];
-
-    if (tracks.some(trackFound => trackFound.url === track.url) || currentTrack?.url === track.url)
-      return interaction.editReply(`The track **${track.title}** is already in the queue ❌`);
-
-    let username = interaction.member.user.globalName;
-    let nickname = interaction.member.nickname;
-
-    if (!nickname) nickname = "no nickname";
-
-    if (tracks.length === 0 && currentTrack === null) {
-      // Display the currently playing track if it's the first in the queue
-      // await interaction.editReply(`Now playing: **${track.cleanTitle}** - ${track.duration} 🎶`);
-      embed
-        .setDescription(`**[${track.title}](${track.url})** is now playing 🎶`)
-        .setThumbnail(track.thumbnail)
-        .setFooter({ text: `Duration: ${track.duration}\n` + 
-                            `Requested by: ${username} (${nickname})`})
-    } else {
-      // Track is added to the queue if something is currently playing
-      // await interaction.editReply(`Added to queue: **${track.cleanTitle}** - ${track.duration} ✅`);
-      embed
-        .setDescription(`**[${track.title}](${track.url})** has been added to the queue ✅`)
-        .setThumbnail(track.thumbnail)
-        .setFooter({ text: `Duration: ${track.duration}\n` + 
-                            `Requested by: ${username} (${nickname})`})
-    }
-
-    queue.addTrack(track);
-    if (!queue.isPlaying()) await queue.node.play();
+      const query = interaction.options.getString('input');
       
-    await interaction.editReply({ 
-      embeds: [embed]
-    });
+      if (!interaction.member.voice.channel) {
+        return interaction.editReply('You need to be in a voice channel! ❌');
+      }
+
+      let queue = client.player.nodes.get(interaction.guild);
+      
+      if (!queue) {
+        queue = client.player.nodes.create(interaction.guild, {
+          metadata: { channel: interaction.channel },
+          volume: 100,
+          leaveOnEmpty: true,
+          leaveOnEmptyCooldown: 30000,
+          leaveOnEnd: true,
+          leaveOnEndCooldown: 30000
+        });
+      }
+
+      const tracks = queue.tracks.toArray();
+      const currentTrack = queue.currentTrack;
+
+      // Connect to voice channel
+      try {
+        if (!queue.connection) {
+          await queue.connect(interaction.member.voice.channel);
+          console.log('✅ Connected to voice channel');
+        }
+      } catch (error) {
+        console.error('Connection error:', error);
+        return interaction.editReply('Could not join the voice channel! ❌');
+      }
+
+      // Search with better error handling
+      console.log('🔍 Searching for:', query);
+      
+      let result;
+      try {
+        result = await client.player.search(query, {
+          requestedBy: interaction.member,
+          searchEngine: QueryType.AUTO
+        });
+        console.log('Search completed. Has tracks?', result?.hasTracks());
+      } catch (searchError) {
+        console.error('Search error:', searchError);
+        return interaction.editReply(`Search failed: ${searchError.message} ❌`);
+      }
+
+      if (!result || !result.hasTracks()) {
+        console.log('No results found for:', query);
+        return interaction.editReply(`No results found for: ${query} ❌\n\nTry:\n- A different video\n- Searching by song name instead of URL\n- Waiting a moment and trying again`);
+      }
+
+      const track = result.tracks[0];
+      console.log('✅ Found track:', track.title);
+
+      // Check duplicates
+      if (tracks.some(t => t.url === track.url) || currentTrack?.url === track.url) {
+        return interaction.editReply(`**${track.title}** is already in the queue! ❌`);
+      }
+
+      let username = interaction.member.user.globalName || interaction.member.user.username;
+
+      // Build embed
+      let embed = new EmbedBuilder();
+      
+      if (tracks.length === 0 && currentTrack === null) {
+        embed.setDescription(`**[${track.title}](${track.url})** is now playing 🎶`);
+      } else {
+        embed.setDescription(`**[${track.title}](${track.url})** added to queue ✅`);
+      }
+
+      if (track.thumbnail && track.thumbnail.trim() !== '') {
+        embed.setThumbnail(track.thumbnail);
+      }
+      
+      embed.setFooter({ 
+        text: `Duration: ${track.duration}\nRequested by: ${username}` 
+      });
+
+      // Add track and play
+      queue.addTrack(track);
+      console.log('➕ Track added to queue');
+      
+      if (!queue.isPlaying()) {
+        console.log('▶️ Starting playback...');
+        await queue.node.play();
+      } else {
+        console.log('Already playing, track queued');
+      }
+
+      await interaction.editReply({ embeds: [embed] });
+
+    } catch (error) {
+      console.error('Error in play command:', error);
+      console.error('Stack:', error.stack);
+      
+      if (interaction.deferred && !interaction.replied) {
+        await interaction.editReply('An error occurred while trying to play the track.');
+      } else if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({ 
+          content: 'An error occurred while trying to play the track.', 
+          ephemeral: true 
+        });
+      }
+    }
   }
 };

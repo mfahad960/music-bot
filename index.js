@@ -2,9 +2,7 @@ require('dotenv').config();
 
 const { Client, Collection, GatewayIntentBits, REST, Routes } = require('discord.js');
 const { Player } = require("discord-player");
-const { YoutubeiExtractor } = require('discord-player-youtubei');
-const { YouTubeExtractor } = require('@discord-player/extractor');
-const ffmpegPath = require('ffmpeg-static');
+const { DefaultExtractors } = require('@discord-player/extractor');
 const fs = require('fs');
 
 const TOKEN = process.env.TOKEN;
@@ -12,7 +10,6 @@ const CLIENT_ID = "1265238110023712789"
 const GUILD_ID = "775765883397341244"
 const BOT_CHANNEL_ID = "1087794554574475284"
 
-// Create a new Discord client
 global.client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
@@ -23,7 +20,7 @@ global.client = new Client({
     ]
 });
 
-// Load all commands
+// Load commands
 const commands = [];
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -34,19 +31,61 @@ for(const file of commandFiles){
     commands.push(command.data.toJSON());
 }
 
-// Add the player to the client
+// Create player with FFmpeg enabled
 const player = new Player(client, {
     ytdlOptions: {
-        FFmpeg: ffmpegPath,
         quality: 'highestaudio',
-        highWaterMark: 1 << 25
+        highWaterMark: 1 << 25,
+        // filter: 'audioonly'
+    },
+    // skipFFmpeg: false
+});
+
+// Event listeners
+player.events.on('error', (queue, error) => {
+    console.error('❌ General player error:', error);
+});
+
+player.events.on('playerError', (queue, error) => {
+    console.error('❌ Player error:', error);
+    if (queue?.metadata?.channel) {
+        queue.metadata.channel.send('There was an error playing the track!');
     }
 });
-// Register the new Youtubei extractor
-player.extractors.register(YoutubeiExtractor, {});
+
+player.events.on('playerStart', (queue, track) => {
+    console.log(`▶️ Started playing: ${track.title}`);
+    queue.metadata.channel.send(`Now playing: **${track.title}** 🎶`);
+});
+
+player.events.on('audioTrackAdd', (queue, track) => {
+    console.log(`➕ Track added: ${track.title}`);
+});
+
+player.events.on('disconnect', (queue) => {
+    console.log('👋 Disconnected from voice channel');
+});
+
+player.events.on('emptyChannel', (queue) => {
+    console.log('📭 Voice channel is empty');
+});
+
+player.events.on('emptyQueue', (queue) => {
+    console.log('📋 Queue finished');
+});
+
 client.player = player;
 
 client.once('ready', async () => {
+    // Load extractors AFTER client is ready
+
+    try {
+        await player.extractors.loadMulti(DefaultExtractors);
+        console.log('✅ Extractors loaded:', player.extractors.store.map(e => e.identifier).join(', '));
+    } catch (error) {
+        console.error('Failed to load extractors:', error);
+    }
+
     const rest = new REST({ version: '10' }).setToken(TOKEN);
 
     console.log("Deploying slash commands");
@@ -56,19 +95,15 @@ client.once('ready', async () => {
     .catch(console.error);
 
     console.log(`${client.user.tag} is online!`);
-    const messageContent = 'Hello! MusicBot is online!';
-
+    
     try {
-        // Fetch the channel
-        const channel = client.channels.cache.get(BOT_CHANNEL_ID) || await client.channels.fetch(BOT_CHANNEL_ID);
+        const channel = client.channels.cache.get(BOT_CHANNEL_ID) || 
+                       await client.channels.fetch(BOT_CHANNEL_ID);
 
-        // Send the message to the channel
         if (channel) {
-            channel.send(messageContent)
+            channel.send('MusicBot is online!')
                 .then(() => console.log('Message sent successfully'))
                 .catch(error => console.error('Error sending message:', error));
-        } else {
-            console.log('Channel not found.');
         }
     } catch (error) {
         console.error('Error fetching channel:', error);
@@ -84,8 +119,20 @@ client.on("interactionCreate", async interaction => {
     try {
         await command.execute({client, interaction});
     } catch(error) {
-        console.error(error);
-        await interaction.reply({content: "There was an error executing this command"});
+        console.error('Error executing command:', error);
+        
+        try {
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({ 
+                    content: "There was an error executing this command", 
+                    ephemeral: true 
+                });
+            } else if (interaction.deferred && !interaction.replied) {
+                await interaction.editReply("There was an error executing this command");
+            }
+        } catch (replyError) {
+            console.error('Could not send error message:', replyError);
+        }
     }
 });
 
