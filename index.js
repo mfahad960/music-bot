@@ -3,9 +3,11 @@ require('dotenv').config();
 const { Client, Collection, GatewayIntentBits, REST, Routes } = require('discord.js');
 const { Player } = require("discord-player");
 const { YoutubeiExtractor } = require('discord-player-youtubei');
+const { YouTubeExtractor } = require('@discord-player/extractor');
+const ffmpegPath = require('ffmpeg-static');
 const fs = require('fs');
 
-const TOKEN = process.env.TOKEN
+const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1265238110023712789"
 const GUILD_ID = "775765883397341244"
 const BOT_CHANNEL_ID = "1087794554574475284"
@@ -35,6 +37,7 @@ for(const file of commandFiles){
 // Add the player to the client
 const player = new Player(client, {
     ytdlOptions: {
+        FFmpeg: ffmpegPath,
         quality: 'highestaudio',
         highWaterMark: 1 << 25
     }
@@ -53,7 +56,7 @@ client.once('ready', async () => {
     .catch(console.error);
 
     console.log(`${client.user.tag} is online!`);
-    const messageContent = 'Hello ! MusicBot is online!';
+    const messageContent = 'Hello! MusicBot is online!';
 
     try {
         // Fetch the channel
@@ -74,7 +77,7 @@ client.once('ready', async () => {
 
 client.on("interactionCreate", async interaction => {
     if(!interaction.isCommand()) return;
-
+    
     const command = client.commands.get(interaction.commandName);
     if(!command) return;
 
