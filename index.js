@@ -10,6 +10,7 @@ const CLIENT_ID = "1265238110023712789"
 const GUILD_ID = "775765883397341244"
 const BOT_CHANNEL_ID = "1087794554574475284"
 
+// Create a new Discord client
 global.client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
@@ -20,7 +21,7 @@ global.client = new Client({
     ]
 });
 
-// Load commands
+// Load all commands
 const commands = [];
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -104,6 +105,8 @@ client.once('ready', async () => {
             channel.send('MusicBot is online!')
                 .then(() => console.log('Message sent successfully'))
                 .catch(error => console.error('Error sending message:', error));
+        } else {
+            console.log('Channel not found!');
         }
     } catch (error) {
         console.error('Error fetching channel:', error);

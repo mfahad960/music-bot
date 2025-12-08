@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { QueryType } = require("discord-player");
+const { QueryType, QueueRepeatMode } = require("discord-player");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -22,20 +22,23 @@ module.exports = {
       }
 
       let queue = client.player.nodes.get(interaction.guild);
-      
+
       if (!queue) {
         queue = client.player.nodes.create(interaction.guild, {
-          metadata: { channel: interaction.channel },
-          volume: 100,
+          metadata: {
+              channel: interaction.channel
+          },
+          volume: 100,                  // Default volume
           leaveOnEmpty: true,
-          leaveOnEmptyCooldown: 30000,
+          leaveOnEmptyCooldown: 30000,  // 30 seconds
           leaveOnEnd: true,
-          leaveOnEndCooldown: 30000
+          leaveOnEndCooldown: 30000     // 30 seconds
         });
       }
 
-      const tracks = queue.tracks.toArray();
-      const currentTrack = queue.currentTrack;
+      queue.setRepeatMode(QueueRepeatMode.QUEUE);
+      const tracks = queue.tracks.toArray(); //Converts the queue into a array of tracks
+      const currentTrack = queue.currentTrack; //Gets the current track being played
 
       // Connect to voice channel
       try {

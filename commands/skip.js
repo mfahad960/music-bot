@@ -2,8 +2,8 @@ const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('pause')
-        .setDescription('Pause the currently playing song.'),
+        .setName('skip')
+        .setDescription('Skip the currently playing song.'),
 
     async execute({client, interaction}) {
         await interaction.deferReply();
@@ -13,10 +13,10 @@ module.exports = {
 
         if (!queue || !queue.isPlaying()) return interaction.editReply(`No song in current queue! ❌`);
 
-        if (queue.node.isPaused()) return interaction.editReply(`Song is already paused! ❌`);
+        // if (queue.node.isPaused()) return interaction.editReply(`Song is already paused! ❌`);
 
-        const success = queue.node.setPaused(true);
+        const success = queue.node.skip();
 
-        if (success) return interaction.editReply(`Song paused ✅`);
+        if (success) return interaction.editReply(`Song skipped ✅`);
     }
 }

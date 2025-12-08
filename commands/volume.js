@@ -17,6 +17,8 @@ module.exports = {
 
         if (!queue || !queue.isPlaying()) return interaction.editReply(`No song in current queue! ❌`);
 
+        if (!interaction.member.voice.channel) return interaction.editReply(`You need to be in a voice channel to use commands ❌`);
+
         if (!newVolume && newVolume != 0) {
             // Get and display the current volume
             const currentVolume = queue.node.volume;
