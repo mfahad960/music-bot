@@ -4,7 +4,7 @@ const { QueryType, QueueRepeatMode } = require("discord-player");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('play')
-    .setDescription('Plays a song from YouTube')
+    .setDescription('Plays a song from Spotify or Soundcloud')
     .addStringOption(option =>
       option.setName("input")
         .setDescription('Enter a search term or a link')
